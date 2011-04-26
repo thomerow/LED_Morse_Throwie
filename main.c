@@ -61,6 +61,19 @@ const unsigned char letters[] = {
 	0b10111000 /* y */, 0b11001000 /* z */
 };
 
+const unsigned char digits[] = {
+	0b11111100,		// 0
+	0b01111100,		// 1
+	0b00111100,		// 2
+	0b00011100,		// 3
+	0b00001100,		// 4
+	0b00000100,		// 5
+	0b10000100,		// 6
+	0b11000100,		// 7
+	0b11100100,		// 8
+	0b11110100,		// 9
+};
+
 enum ePunct {
 	Punct_Period = 0,
 	Punct_Comma,
@@ -82,6 +95,7 @@ const unsigned char punctChars[] = {
 unsigned char getMorseChar(char c)
 {
 	if ((c >= 'a') && (c <= 'z')) return letters[c - 'a'];
+	else if ((c >= '0') && (c <= '9')) return digits[c - '0'];
 
 	switch (c) {
 	case '.':
