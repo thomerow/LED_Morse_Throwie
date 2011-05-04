@@ -11,6 +11,5 @@
 int main();
 unsigned char getMorseChar(char c);
 int getCharLength(char c);
-int strlen(const char* str);
 
 #endif /* MAIN_H_ */
