@@ -8,18 +8,24 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
+#include <avr/sleep.h>
 
 
-#define PAUSE_CHAR 3		// The pause between each letter is 3 "dits"
-#define PAUSE_WORD 5		// The pause between each word is 5 "dits"
+#define PAUSE_CHAR 3		// The pause between each letter is 3 "dits".
+#define PAUSE_WORD 5		// The pause between each word is 5 "dits".
 #define PAUSE_TEXT 40		// Pause before retransmitting text.
-#define LENGTH_DIT 1		// Legth of a "dit"
-#define LENGTH_DAH 3		// Each "dah" equals 3 "dits" ;-)
+#define LENGTH_DIT 1		// Legth of a "dit".
+#define LENGTH_DAH 3		// Each "dah" equals 3 "dits".
 
 
 // The text (Resides in program space thanks to macros defined in avr/pgmspace.h
-// (see http://www.nongnu.org/avr-libc/user-manual/pgmspace.html))
+// (see http://www.nongnu.org/avr-libc/user-manual/pgmspace.html)).
 
+#ifdef _DEBUG
+
+char theText[] PROGMEM = "test.";
+
+#else
 
 char theText[] PROGMEM =
 "ein led-throwie ist eine led, die zusammen mit einer knopfzelle und einem "
@@ -38,6 +44,8 @@ char theText[] PROGMEM =
 "york city statt. grl-aktivisten verteilten led-throwies an passanten und wiesen sie "
 "an, diese auf die metallskulptur alamo am astor place in manhattan zu werfen. "
 "eine aktion in deutschland wurde am berliner u-bahnhof kottbusser tor durchgefuehrt.";
+
+#endif
 
 
 volatile int 	nLenText 	= 0;
@@ -92,38 +100,20 @@ const unsigned char punctChars[] = {
 	0b10110110,		// Right bracket
 };
 
+
 unsigned char getMorseChar(char c)
 {
 	if ((c >= 'a') && (c <= 'z')) return letters[c - 'a'];
 	else if ((c >= '0') && (c <= '9')) return digits[c - '0'];
 
 	switch (c) {
-	case '.':
-		return punctChars[Punct_Period];
-		break;
-
-	case ',':
-		return punctChars[Punct_Comma];
-		break;
-
-	case '?':
-		return punctChars[Punct_QuestionMark];
-		break;
-
-	case '-':
-		return punctChars[Punct_Minus];
-		break;
-
-	case '(':
-		return punctChars[Punct_LeftBracket];
-		break;
-
-	case ')':
-		return punctChars[Punct_RightBracket];
-		break;
-
-	default:
-		return 0;
+	case '.': 	return punctChars[Punct_Period];
+	case ',': 	return punctChars[Punct_Comma];
+	case '?': 	return punctChars[Punct_QuestionMark];
+	case '-': 	return punctChars[Punct_Minus];
+	case '(': 	return punctChars[Punct_LeftBracket];
+	case ')': 	return punctChars[Punct_RightBracket];
+	default: 	return 0;
 	}
 } // getMorseChar
 
@@ -131,11 +121,11 @@ unsigned char getMorseChar(char c)
 int getCharLength(char c)
 {
 	int nResult = 7;
-	unsigned char bit = 1;
+	unsigned char mask = 1;
 
 	unsigned char chMorse = getMorseChar(c);
 	if (!chMorse) return 0;
-	while (!(chMorse & bit)) { bit <<= 1; --nResult; }
+	while (!(chMorse & mask)) { mask <<= 1; --nResult; }
 
 	return nResult;
 } // getCharLength
@@ -145,27 +135,39 @@ int main()
 {
 	DDRB = _BV(DDB0); 			// Pin 0 = output
 #ifdef _DEBUG
-	PORTB &= ~_BV(PORTB0);		// LED off on bread board
+	PORTB &= ~_BV(PORTB0);		// LED off on breadboard
 #else
 	PORTB |= _BV(PORTB0);		// Switch pin 0 "on" to switch the LED off.
 #endif
 
-	// Timer 1 prescaler:
-	TCCR1 = _BV(CS10) | _BV(CS13);	// 1:256
+	// Set timer 1 prescaler. This and OCR1A (see below) affect the blinking speed.
+	// For possible values see Attiny45 data sheet.
+	TCCR1 = _BV(CS11) | _BV(CS13);	// 1:512
 
-	TIMSK = _BV(TOIE1); // Enable timer 1 overflow interrupt
+	// Enable timer 1 compare match A interrupt. Could have used timer 1 overflow
+	// interrupt (TOIE1) instead, but using a compare register allows a more precise
+	// blinking speed setting.
+	TIMSK = _BV(OCIE1A);
+
+	// Set timer 1 output compare register A. This sets the blinking speed.
+	// Lower values result in a higher frequency.
+	OCR1A = 127;
+
+	// Disable analog comparator to reduce power consumption in idle mode.
+	ACSR |= _BV(ACD);
 
 	// Globally enable interrupts
 	sei();
 
-	// Endless loop (the whole algorithm is executed in the timer interrupt function)
-	for (;;);
+	// Endless loop putting the MCU to sleep / idle mode as often as possible.
+	// The main algorithm is executed in the timer interrupt function.
+	for (;;) { set_sleep_mode(SLEEP_MODE_IDLE); sleep_mode(); }
 
 	return 0;
 } // main
 
 
-ISR(TIMER1_OVF_vect)
+ISR(TIMER1_COMPA_vect)
 {
 	if (nLenPause) {
 		--nLenPause;
@@ -174,7 +176,7 @@ ISR(TIMER1_OVF_vect)
 		--nLenSymb;
 		if (!nLenSymb) {
 #ifdef _DEBUG
-			PORTB &= ~_BV(PORTB0);	// LED off on bread board
+			PORTB &= ~_BV(PORTB0);	// LED off on breadboard
 #else
 			PORTB |= _BV(PORTB0);	// LED off
 #endif
@@ -185,7 +187,7 @@ ISR(TIMER1_OVF_vect)
 	else if (nLenChar) {
 		nLenSymb = (uMorse & 0x80) ? LENGTH_DAH : LENGTH_DIT;
 #ifdef _DEBUG
-		PORTB |= _BV(PORTB0);		// LED on on bread board
+		PORTB |= _BV(PORTB0);		// LED on on breadboard
 #else
 		PORTB &= ~_BV(PORTB0); 		// LED on
 #endif
@@ -211,4 +213,8 @@ ISR(TIMER1_OVF_vect)
 		nPosText = 0;
 		nLenText = strlen_P(theText);
 	}
+
+	// Reset timer 1 counter (Only necessary if timer 1 compare match interrupt instead of
+	// timer 1 overflow interrupt is used)
+	TCNT1 = 0;
 } // ISR
