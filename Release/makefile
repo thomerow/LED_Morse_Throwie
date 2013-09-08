@@ -49,7 +49,7 @@ all: LED_Morse_Throwie.elf secondary-outputs
 LED_Morse_Throwie.elf: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: AVR C Linker'
-	avr-gcc -Wl,-Map,LED_Morse_Throwie.map -mmcu=attiny45 -o"LED_Morse_Throwie.elf" $(OBJS) $(USER_OBJS) $(LIBS)
+	avr-gcc -Wl,-Map,LED_Morse_Throwie.map -mmcu=attiny45 -o "LED_Morse_Throwie.elf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
