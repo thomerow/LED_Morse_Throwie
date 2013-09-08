@@ -19,33 +19,10 @@
 
 
 // The text (Resides in program space thanks to macros defined in avr/pgmspace.h
-// (see http://www.nongnu.org/avr-libc/user-manual/pgmspace.html)).
+// (see http://www.nongnu.org/avr-libc/user-manual/pgmspace.html)). Must be lower case.
+// For known characters see definitions below.
 
-#ifdef _DEBUG
-
-char theText[] PROGMEM = "test.";
-
-#else
-
-char theText[] PROGMEM =
-"ein led-throwie ist eine led, die zusammen mit einer knopfzelle und einem "
-"magneten temporaer an objekten befestigt werden kann. die komponenten werden "
-"mit epoxidharz oder klebeband fixiert. led-throwies wurden vom graffiti research "
-"lab (grl) als eine zerstoerungsfreie alternative zu graffiti erfunden . "
-"led-throwies werden hauptsaechlich fuer streetart oder als effektmittel "
-"fuer events und messen verwendet. in der streetart-szene werden throwies "
-"an metallene objekte wie statuen, bruecken, gebaeude oder oeffentliche "
-"transportmittel geworfen. auf messen und ausstellungen dienen led-throwies "
-"als guenstige beleuchtungsmittel und eyecatcher. "
-"led-throwies wurden 2006 von james powderly und evan roth im graffiti research "
-"lab entwickelt. die throwies wurden wie alle entwicklungen des openlab als open "
-"source-projekt unter public domain veroeffentlicht. "
-"die erste vom graffiti research lab organisierte led-throwie-kampagne fand in new "
-"york city statt. grl-aktivisten verteilten led-throwies an passanten und wiesen sie "
-"an, diese auf die metallskulptur alamo am astor place in manhattan zu werfen. "
-"eine aktion in deutschland wurde am berliner u-bahnhof kottbusser tor durchgefuehrt.";
-
-#endif
+char theText[] PROGMEM = "freeda beast";
 
 
 volatile int 	nLenText 	= 0;
@@ -134,11 +111,7 @@ int getCharLength(char c)
 int main()
 {
 	DDRB = _BV(DDB0); 			// Pin 0 = output
-#ifdef _DEBUG
-	PORTB &= ~_BV(PORTB0);		// LED off on breadboard
-#else
-	PORTB |= _BV(PORTB0);		// Switch pin 0 "on" to switch the LED off.
-#endif
+	PORTB |= _BV(PORTB0);		// Set pin 0 to "on" to switch the LED off.
 
 	// Set timer 1 prescaler. This and OCR1A (see below) affect the blinking speed.
 	// For possible values see Attiny45 data sheet.
@@ -175,22 +148,13 @@ ISR(TIMER1_COMPA_vect)
 	else if (nLenSymb) {
 		--nLenSymb;
 		if (!nLenSymb) {
-#ifdef _DEBUG
-			PORTB &= ~_BV(PORTB0);	// LED off on breadboard
-#else
 			PORTB |= _BV(PORTB0);	// LED off
-#endif
-
 			nLenPause = nLenChar ? LENGTH_DIT : LENGTH_DAH;
 		}
 	}
 	else if (nLenChar) {
 		nLenSymb = (uMorse & 0x80) ? LENGTH_DAH : LENGTH_DIT;
-#ifdef _DEBUG
-		PORTB |= _BV(PORTB0);		// LED on on breadboard
-#else
 		PORTB &= ~_BV(PORTB0); 		// LED on
-#endif
 		uMorse <<= 1;
 		--nLenChar;
 	}
