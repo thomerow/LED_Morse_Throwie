@@ -11,11 +11,11 @@
 #include <avr/sleep.h>
 
 
-#define PAUSE_CHAR 3				// The pause between each letter is 3 "dits".
-#define PAUSE_WORD 5				// The pause between each word is 5 "dits".
-#define PAUSE_TEXT 40				// Pause before retransmitting text.
 #define LENGTH_DIT 1				// Legth of a "dit".
-#define LENGTH_DAH (3 * LENGTH_DIT)	// Each "dah" equals 3 "dits". ;)
+#define LENGTH_DAH (3 * LENGTH_DIT)		// Each "dah" equals 3 "dits". ;)
+#define PAUSE_CHAR (3 * LENGTH_DIT)		// The pause between each letter is 3 "dits".
+#define PAUSE_WORD (5 * LENGTH_DIT)		// The pause between each word is 5 "dits".
+#define PAUSE_TEXT 40				// Pause before retransmitting text.
 
 
 // The text (Resides in program space thanks to macros defined in avr/pgmspace.h
