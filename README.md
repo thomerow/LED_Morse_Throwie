@@ -1,4 +1,4 @@
-LED_Morse_Throwie
+LED Morse Throwie
 =================
 
 Customizable LED morse throwie firmware for Attiny45 &amp; Attiny85.
