@@ -11,7 +11,7 @@
 #include <avr/sleep.h>
 
 
-#define LENGTH_DIT 1				// Legth of a "dit".
+#define LENGTH_DIT 1				// Length of a "dit".
 #define LENGTH_DAH (3 * LENGTH_DIT)		// Each "dah" equals 3 "dits". ;)
 #define PAUSE_CHAR (3 * LENGTH_DIT)		// The pause between each letter is 3 "dits".
 #define PAUSE_WORD (5 * LENGTH_DIT)		// The pause between each word is 5 "dits".
@@ -22,7 +22,7 @@
 // (see http://www.nongnu.org/avr-libc/user-manual/pgmspace.html)). Must be lower case.
 // For known characters see definitions below.
 
-char theText[] PROGMEM = "freeda beast";
+char theText[] PROGMEM = "dare deep";
 
 
 volatile int 	nLenText 	= 0;
@@ -124,7 +124,7 @@ int main()
 
 	// Set timer 1 output compare register A. This sets the blinking speed.
 	// Lower values result in a higher frequency.
-	OCR1A = 100;
+	OCR1A = 130;
 
 	// Disable analog comparator to reduce power consumption in idle mode.
 	ACSR |= _BV(ACD);
@@ -134,7 +134,8 @@ int main()
 
 	// Endless loop putting the MCU to sleep / idle mode as often as possible.
 	// The main algorithm is executed in the timer interrupt function.
-	for (;;) { set_sleep_mode(SLEEP_MODE_IDLE); sleep_mode(); }
+	set_sleep_mode(SLEEP_MODE_IDLE);
+	for (;;) { sleep_mode(); }
 
 	return 0;
 } // main
