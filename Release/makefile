@@ -13,9 +13,6 @@ RM := rm -rf
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)
-ifneq ($(strip $(C_DEPS)),)
--include $(C_DEPS)
-endif
 ifneq ($(strip $(ASM_DEPS)),)
 -include $(ASM_DEPS)
 endif
@@ -24,6 +21,9 @@ ifneq ($(strip $(S_DEPS)),)
 endif
 ifneq ($(strip $(S_UPPER_DEPS)),)
 -include $(S_UPPER_DEPS)
+endif
+ifneq ($(strip $(C_DEPS)),)
+-include $(C_DEPS)
 endif
 endif
 
@@ -62,7 +62,7 @@ LED_Morse_Throwie.lss: LED_Morse_Throwie.elf
 
 LED_Morse_Throwie.hex: LED_Morse_Throwie.elf
 	@echo 'Create Flash image (ihex format)'
-	-avr-objcopy -R .eeprom -O ihex LED_Morse_Throwie.elf  "LED_Morse_Throwie.hex"
+	-avr-objcopy -R .eeprom -R .fuse -R .lock -R .signature -O ihex LED_Morse_Throwie.elf  "LED_Morse_Throwie.hex"
 	@echo 'Finished building: $@'
 	@echo ' '
 
@@ -80,7 +80,7 @@ sizedummy: LED_Morse_Throwie.elf
 
 # Other Targets
 clean:
-	-$(RM) $(OBJS)$(C_DEPS)$(ASM_DEPS)$(EEPROM_IMAGE)$(FLASH_IMAGE)$(ELFS)$(LSS)$(S_DEPS)$(SIZEDUMMY)$(S_UPPER_DEPS) LED_Morse_Throwie.elf
+	-$(RM) $(FLASH_IMAGE)$(ELFS)$(OBJS)$(ASM_DEPS)$(EEPROM_IMAGE)$(S_DEPS)$(SIZEDUMMY)$(S_UPPER_DEPS)$(LSS)$(C_DEPS) LED_Morse_Throwie.elf
 	-@echo ' '
 
 secondary-outputs: $(LSS) $(FLASH_IMAGE) $(EEPROM_IMAGE) $(SIZEDUMMY)
